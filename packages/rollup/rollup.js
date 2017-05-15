@@ -50,20 +50,13 @@ module.exports = function(opts) {
             }
 
             // Add the file & its dependencies
-            return processor.string(id, code).then(function(result) {
+            return processor.string(id, code).then((result) => {
                 var classes = output.join(result.exports),
                     named   = Object.keys(classes),
                     out     = [
                         `export default ${JSON.stringify(classes, null, 4)};`
                     ];
                 
-                // Add dependencies
-                out = out.concat(
-                    processor.dependencies(id).map((file) =>
-                        `import "${file.replace(/\\/g, "/")}";`
-                    )
-                );
-                    
                 if(options.namedExports === false) {
                     return {
                         code : out.join("\n"),
@@ -102,17 +95,28 @@ module.exports = function(opts) {
         },
 
         onwrite : function(bundle, result) {
-            result.css.then(function(data) {
+            result.css.then((data) => {
                 if(options.css) {
                     mkdirp.sync(path.dirname(options.css));
+                    
                     fs.writeFileSync(
                         options.css,
                         data.css
                     );
                 }
+
+                if(options.css && data.map) {
+                    mkdirp.sync(path.dirname(options.css));
+
+                    fs.writeFileSync(
+                        `${options.css}.map`,
+                        data.map.toString()
+                    );
+                }
                 
                 if(options.json) {
                     mkdirp.sync(path.dirname(options.json));
+                    
                     fs.writeFileSync(
                         options.json,
                         JSON.stringify(data.compositions, null, 4)

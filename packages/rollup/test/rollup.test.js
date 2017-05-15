@@ -120,6 +120,26 @@ describe("/rollup.js", () => {
             expect(bundle.generate({ format : "es" }).code).toMatchSnapshot()
         )
     );
+
+    it("should generate external source maps", () =>
+        rollup({
+            entry   : require.resolve("./specimens/simple.js"),
+            plugins : [
+                plugin({
+                    namer,
+                    css : "./packages/rollup/test/output/simple.css",
+                    map : {
+                        inline : false
+                    }
+                })
+            ]
+        })
+        .then((bundle) => bundle.write({
+            format : "es",
+            dest   : "./packages/rollup/test/output/simple.js"
+        }))
+        .then(() => expect(read("simple.css.map")).toMatchSnapshot())
+    );
     
     it("should warn & not export individual keys when they are not valid identifiers", () =>
         rollup({
